@@ -1,0 +1,16 @@
+export const status = "$";
+export const username = "u";
+export const location = "l";
+export const clientRandomness = "r";
+export const clientChallenge =  "c";
+export const serverRandomness = "R";
+export const serverChallenge =  "C";
+export const clientInternalSeed = "i";
+export const serverInternalSeed = "I";
+export const userSeed = "s";
+export const salt = "S";
+export const partialKey = "p";
+export const clientResponse = "a";
+export const serverResponse = "A";
+export const storedToken =  "T";
+export const clientSeeded = "d";

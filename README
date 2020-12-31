@@ -1,0 +1,40 @@
+╔═══════════════════════════════════════════╗
+║                                           ║
+║     Ketchup2 Authentication Mechanism     ║
+║                                           ║
+╚═══════════════════════════════════════════╝
+
+Algorithms used by Ketchup2:
+
+  ChaCha20-Poly1305 - Authenticated cipher, used to encrypt stored tokens.
+  BLAKE2b512        - Hash function, used for all hashing (except passwords) and key derivation throughout the project.
+  Scrypt            - Slow password hash, used to hash passwords.
+
+Data is encoded in the MessagePack format.
+
+~~~~ Flow ~~~~
+
+<- ClientFirst
+    $Username :: Username
+    $Location? :: Optionally the location (think realm)
+    ClientRandomness :: Some bytes of randomness from the client
+    ClientChallenge :: The clients challenge for the server
+
+-> ServerFirst
+    ServerRandomness :: Some bytes of randomness from the server
+    ServerChallenge :: The servers challenge for the client
+    InternalSeed :: Seed also used for calculation of stored token
+    UserSeed :: Seed used for calculation of PartialKey
+    Salt :: Salt used for password hashing
+
+<- ClientLast
+    PartialKey($Password, ServerFirst.Salt, ServerFirst.UserSeed) :: Key used to encrypt stored token at rest
+    ClientResponse(ServerFirst.ServerChallenge) :: Clients response to server challenge
+
+-> ServerLast
+    ServerResponse(ClientFirst.ClientChallenge) :: Servers response to client challenge
+
+~~~~ Symbols ~~~~
+
+<- : Client to Server
+-> : Server to Client
