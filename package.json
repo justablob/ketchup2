@@ -2,7 +2,7 @@
   "name": "ketchup2",
   "version": "0.2.0",
   "main": "./lib/index.js",
-  "license": "Apache2.0",
+  "license": "Apache-2.0",
   "devDependencies": {
     "@swc/cli": "^0.1.27",
     "@swc/core": "^1.2.38",
