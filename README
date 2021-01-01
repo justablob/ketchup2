@@ -8,6 +8,9 @@ DISCLAIMER 3: THIS COULD VERY WELL BE TERRIBLE, PLEASE DON'T LAUGH AT ME IF I ME
 ║                                           ║
 ╚═══════════════════════════════════════════╝
 
+Ketchup2, named by me and a friend during lunch, is a password-based mutual authentication mechanism. It aims to avoid transmitting the plaintext password over the network, authenticate both sides to each other and offer a way to verify additional data.
+Below is a likely lacking documentation of it, hope it's understandable enough. The code in this repository is a Typescript/NodeJS implementation of it. Tested and working on NodeJS 15.4.0, though it should work with lower versions too.
+
 ~~~~ Algorithms ~~~~
 
   ChaCha20-Poly1305 - Authenticated cipher, used to encrypt stored tokens.
