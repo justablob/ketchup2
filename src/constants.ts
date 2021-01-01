@@ -1,6 +1,7 @@
 export const VERSION = "2";
 
 export const BUFFER0 = Buffer.alloc(0);
+export const SCRYPT_PARAMS = { N: 2 ** 16, p: 1, r: 16, maxmem: 130 * 1024 * 1024 };
 
 export const HASH = "blake2b512";
 export const HASH_LENGTH = 64;
