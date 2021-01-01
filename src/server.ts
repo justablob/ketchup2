@@ -120,7 +120,9 @@ export default class Server {
         clientResponse.length !== constants.HASH_LENGTH
       ) return this.isValid = false;
 
-      this.decryptedStoredToken = crypto.decryptIV(crypto.deriveKey(encoding.UTF8ToBytes("PartialKey"), partialKey, constants.CIPHER_KEY_LENGTH), this.storedToken);
+      let storedTokenKey = crypto.deriveKey(this.serverPartialKeySeed, partialKey, constants.CIPHER_KEY_LENGTH, "PartialKey");
+
+      this.decryptedStoredToken = crypto.decryptIV(storedTokenKey, this.storedToken);
 
       let generatedClientResponse = crypto.deriveKey(this.decryptedStoredToken, Buffer.concat([this.serverChallenge, this.clientRandomness, this.serverRandomness, this.clientAdditionalData]), constants.HASH_LENGTH, "ClientResponse");
 
