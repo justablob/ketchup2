@@ -88,7 +88,10 @@ Data is encoded in the MessagePack format.
     StoredToken ::
         Encrypted password hash, retrieved from database.
 
-    ServerPartialKey :: HKDF("PartialKey", ClientLast.PartialKey, 32)
+    ServerPartialKeySeed ::
+        Random bytes retrieved from database, used to hash PartialKey.
+
+    ServerPartialKey :: HKDF(Server.ServerPartialKeySeed, ClientLast.PartialKey, 32, "PartialKey")
         Key used to decrypt StoredToken into ServerKey.
 
     ServerKey :: Decrypt(Server.ServerPartialKey, Server.StoredToken)
