@@ -18,11 +18,12 @@ export default class Server {
   private serverRandomness: Buffer;
   private serverAdditionalData: Buffer = constants.BUFFER0;
 
-  private storedToken: Buffer;
+  private salt: Buffer;
   private userSeed: Buffer;
+  private storedToken: Buffer;
   private clientInternalSeed: Buffer;
   private serverInternalSeed: Buffer;
-  private salt: Buffer;
+  private serverPartialKeySeed: Buffer;
 
   private decryptedStoredToken: Buffer;
 
@@ -37,10 +38,10 @@ export default class Server {
 
       this.salt = data[names.salt];
       this.userSeed = data[names.userSeed];
+      this.storedToken = data[names.storedToken];
       this.clientInternalSeed = data[names.clientInternalSeed];
       this.serverInternalSeed = data[names.serverInternalSeed];
-
-      this.storedToken = data[names.storedToken];
+      this.serverPartialKeySeed = data[names.serverPartialKeySeed];
 
       return this.isValid = true;
     } catch (err) {

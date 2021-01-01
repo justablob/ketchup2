@@ -9,6 +9,7 @@ export const clientInternalSeed = "i";
 export const serverInternalSeed = "I";
 export const userSeed = "s";
 export const salt = "S";
+export const serverPartialKeySeed = "e";
 export const partialKey = "p";
 export const clientResponse = "a";
 export const serverResponse = "A";

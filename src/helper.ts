@@ -56,9 +56,12 @@ export function ServerCreatePassword(_data: Buffer): [string, string, Buffer] {
     ) return null;
 
     let serverInternalSeed = crypto.random(constants.SEED_LENGTH);
-    let serverSeeded = crypto.keyed(serverInternalSeed, clientSeeded);
+    let serverPartialKeySeed = crypto.random(constants.SEED_LENGTH);
 
-    let encrypted = crypto.encryptIV(crypto.deriveKey(encoding.UTF8ToBytes("PartialKey"), partialKey, constants.CIPHER_KEY_LENGTH), serverSeeded);
+    let serverSeeded = crypto.keyed(serverInternalSeed, clientSeeded);
+    let serverPartialKey = crypto.deriveKey(serverPartialKeySeed, partialKey, constants.CIPHER_KEY_LENGTH, "PartialKey");
+
+    let encrypted = crypto.encryptIV(serverPartialKey, serverSeeded);
 
     return [
       data[names.username],
@@ -67,6 +70,7 @@ export function ServerCreatePassword(_data: Buffer): [string, string, Buffer] {
         [names.storedToken]: encrypted,
         [names.salt]: salt,
         [names.userSeed]: userSeed,
+        [names.serverPartialKeySeed]: serverPartialKeySeed,
         [names.clientInternalSeed]: clientInternalSeed,
         [names.serverInternalSeed]: serverInternalSeed,
       })
