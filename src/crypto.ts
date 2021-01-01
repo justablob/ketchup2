@@ -36,7 +36,7 @@ export function deriveKey(key: Buffer, data: Buffer, length: number = constants.
 }
 
 export function password(password: string, salt: string | Buffer, length: number = constants.HASH_LENGTH) {
-  return crypto.scryptSync(password, salt, length, { N: 2 ** 13, r: 8, p: 1, maxmem: 16 * 1024 * 1024 });
+  return crypto.scryptSync(password, salt, length, constants.SCRYPT_PARAMS);
 }
 
 export function encrypt(key: Buffer, iv: Buffer, data: Buffer): Buffer {
