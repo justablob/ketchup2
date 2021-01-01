@@ -73,7 +73,6 @@ export default class Client {
       let clientInternalSeed = data[names.clientInternalSeed];
       let serverInternalSeed = data[names.serverInternalSeed];
 
-
       if (
         salt.length !== constants.SEED_LENGTH ||
         userSeed.length !== constants.SEED_LENGTH ||

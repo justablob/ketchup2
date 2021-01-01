@@ -6,7 +6,7 @@ DISCLAIMER: KETCHUP2 WAS NOT PEER-REVIEWED. DO NOT USE FOR ANY PROJECTS UNDER AN
 ║                                           ║
 ╚═══════════════════════════════════════════╝
 
-Algorithms used by Ketchup2:
+~~~~ Algorithms ~~~~
 
   ChaCha20-Poly1305 - Authenticated cipher, used to encrypt stored tokens.
   BLAKE2b512        - Hash function, used for all hashing (except passwords) and key derivation throughout the project.
@@ -17,26 +17,102 @@ Data is encoded in the MessagePack format.
 ~~~~ Flow ~~~~
 
 <- ClientFirst
-    $Username :: Username
-    $Location? :: Optionally the location (think realm)
-    ClientRandomness :: Some bytes of randomness from the client
-    ClientChallenge :: The clients challenge for the server
+    $Username ::
+        Username encoded as UTF8.
+
+    $Location? ::
+        Log in location, think Realm in other protocols. If logging in at "example.com" over HTTPS, location could be "https:example.com".
+        This is optional, and the format does not have to follow any standard, as long as it stays the same.
+
+    ClientRandomness ::
+        24 random bytes from the client.
+
+    ClientChallenge ::
+        32 random bytes used as challenge, that the server will use to authenticate itself.
+
+-- Client
+    ClientAdditionalData? ::
+        Optional data that should be taken into the hash.
+        Both sides need to know this value, but it should not be transmitted as part of Ketchup.
+        Example: Client and Server do Diffie-Hellman in addition to Ketchup to establish a secure channel.
+        The Client's DH public key could be used as a value for this, because it will allow the server to
+        verify that there's no man in the middle, because an attacker is not able to fake the necessary signature.
+        Defaults to an empty buffer.
 
 -> ServerFirst
-    ServerRandomness :: Some bytes of randomness from the server
-    ServerChallenge :: The servers challenge for the client
-    InternalSeed :: Seed also used for calculation of stored token
-    UserSeed :: Seed used for calculation of PartialKey
-    Salt :: Salt used for password hashing
+    ServerRandomness ::
+        24 random bytes from the server.
+
+    ServerChallenge ::
+        32 random bytes used as challenge, that the client will use to authenticate itself.
+
+    ClientInternalSeed ::
+        Seed the client uses.
+
+    ServerInternalSeed ::
+        Seed the server uses.
+
+    UserSeed ::
+        Seed used in calculation of PartialKey.
+
+    Salt ::
+        Salt used for password hashing.
+
+-- Server
+    ServerAdditionalData? ::
+        Same as ClientAdditionalData, but for the server.
+
+-- Client
+    StoredPassword :: Scrypt($Password, ServerFirst.Salt, 64)
+        Hashed+Salted password.
+
+    ClientKey :: HKDF(ServerFirst.ClientInternalSeed, Client.StoredPassword, 64, "ClientKey")
+        Used internally to calculate ServerKey.
+
+    ServerKey :: HMAC(ServerFirst.ServerInternalSeed, Client.ClientKey)
+        Used internally to sign challenges. The server stores this in an encrypted form.
 
 <- ClientLast
-    PartialKey($Password, ServerFirst.Salt, ServerFirst.UserSeed) :: Key used to encrypt stored token at rest
-    ClientResponse(ServerFirst.ServerChallenge) :: Clients response to server challenge
+    PartialKey :: HKDF(ServerFirst.UserSeed, Client.StoredPassword, 64, "PartialKeyClient")
+        Key used to decrypt the password hash on the server.
+
+    ClientResponse :: HKDF(Client.ServerKey, ServerFirst.ServerChallenge | ClientFirst.ClientRandomness | ServerFirst.ServerRandomness | Client.ClientAdditionalData, 64, "ClientResponse")
+        Client response for servers challenge.
+
+-- Server
+    StoredToken ::
+        Encrypted password hash, retrieved from database.
+
+    ServerPartialKey :: HKDF("PartialKey", ClientLast.PartialKey, 32)
+        Key used to decrypt StoredToken into ServerKey.
+
+    ServerKey :: Decrypt(Server.ServerPartialKey, Server.StoredToken)
+        Equal to Client.ServerKey.
 
 -> ServerLast
-    ServerResponse(ClientFirst.ClientChallenge) :: Servers response to client challenge
+    ServerResponse :: HKDF(Server.ServerKey, ClientFirst.ClientChallenge | ServerFirst.ServerRandomness | ClientFirst.ClientRandomness | Server.ServerAdditionalData, 64, "ServerResponse")
+        Server response for clients challenge.
 
-~~~~ Symbols ~~~~
+// At this point, both sides have enough information to validate each others responses, without having disclosed enough
+   information to allow a possible man in the middle steal any sensitive data or impersonate the user, given the man in
+   the middle does not have access to the server database, or otherwise infiltrated one of the two sides.
 
+~~~~ Functions ~~~~
+
+x | y - concatenation of x and y
+
+Scrypt(password, salt, length = 64) - Scrypt KDF over password using salt with output length.
+Hash(data) - BLAKE2b512 over data
+HMAC(key, data) - BLAKE2b512 keyed HMAC over data
+HKDF(key, data, length = 64, info) - HKDF-BLAKE2b512 over key, data, info with output length.
+Decrypt(key, data) - Decrypts data using chacha20-poly1305 using key as key and the first 12 bytes of data as IV.
+Encrypt(key, data) - Encrypts data using chacha20-poly1305 using key as key and generating a random IV.
+
+~~~~ Symbols and Terminology ~~~~
+
+Seed = Salt, because I mixed them up while writing this
+
+// : Annotation
+-- : Value used locally
 <- : Client to Server
 -> : Server to Client
