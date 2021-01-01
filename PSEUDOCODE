@@ -1,0 +1,41 @@
+Functions used:
+0.1. x | y - concatenation of x and y
+0.2. Scrypt(password, salt, length = 64)
+0.3. Hash(data) - BLAKE2b512
+0.4. HMAC(key, data) - BLAKE2b512 HMAC
+0.5. HKDF(key, data, length = 64, info) - HKDF-BLAKE2b512
+0.7. Decrypt(key, data) - chacha20-poly1305, first 12 bytes of data are IV
+
+1.1. Client retrieves `Username` and optionally `Location` from somewhere, encodes them as UTF8 buffers
+1.2. Client generates 24 random bytes -> `ClientRandomness`
+1.3. Client generates 32 random bytes -> `ClientChallenge`
+1.4. Client sends `Username`, `Location`, `ClientRandomness` and `ClientChallenge` to server
+
+1.5. Client optionally retrieves `ClientAdditionalData` from somewhere, which should be a value known both to the server and the client, like the clients Diffie-Hellman public key for example.
+
+2.1. Server looks up user in database, if not found, send error and abort
+2.2. Server gets `Salt`, `UserSeed`, `ClientInternalSeed` and `ServerInternalSeed` from database entry
+2.3. Server gets `StoredToken`, which is the encrypted password hash and `ServerPartialKeySeed`, from the database entry
+2.2. Server generates 24 random bytes -> `ServerRandomness`
+2.3. Server generates 32 random bytes -> `ServerChallenge`
+2.4. Server sends `Salt`, `UserSeed`, `ClientInternalSeed`, `ServerInternalSeed`, `ServerRandomness` and `ServerChallenge` to client
+
+2.5. Server optionally retrieves `ServerAdditionalData` from somewhere, which should be a value known both to the server and the client, like the servers Diffie-Hellman public key for example.
+
+3.1. Client calculates `StoredPassword`: `scrypt(Password, Salt, 64)`
+3.2. Client calculates `ClientKey`: `HKDF(ClientInternalSeed, StoredPassword, 64, "ClientKey")`
+3.3. Client calculates `ServerKey`: `HMAC(ServerInternalSeed, ClientKey)`
+
+3.4. Client calculates `Partialkey`: `HKDF(UserSeed, StoredPassword, 64, "PartialKeyClient")`
+3.5. Client calculates `ClientResponse`: `HKDF(ServerKey, ServerChallenge | ClientRandomness | ServerRandomness | ClientAdditionalData, 64, "ClientResponse")`
+3.6. Client sends `PartialKey` and `ClientResponse` to server
+
+4.1. Server calculates `ServerPartialKey`: `HKDF(ServerPartialKeySeed, PartialKey, 32, "PartialKey")`
+4.2. Server gets `ServerKey`: `Decrypt(ServerPartialKey, StoredToken)`
+
+4.3. Server calculates `ClientResponse` in the same way as client and compares it to the client's `ClientResponse`, if no match, send error and abort
+4.4. Server calculates `ServerResponse`: `HKDF(ServerKey, ClientChallenge | ServerRandomness | ClientRandomness | ServerAdditionalData, 64, "ServerResponse")`
+4.5. Server sends `ServerResponse` to client
+
+5.1. Client calculates `ServerResponse` in the same way as server and compares it to the server's `ServerResponse`
+5.2. If match, authentication was successful, otherwise abort
