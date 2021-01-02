@@ -16,7 +16,7 @@ Below is a likely lacking documentation of it, hope it's understandable enough. 
   ChaCha20-Poly1305 - Authenticated cipher, used to encrypt stored tokens.
   BLAKE2b512        - Hash function, used for all hashing (except passwords) and key derivation throughout the project.
   Scrypt            - Slow password hash, used to hash passwords.
-      N = 2 ** 16, r = 16, p = 1
+                      Parameters: N = 2 ** 16, r = 16, p = 1
 
 Data is encoded in the MessagePack format.
 
