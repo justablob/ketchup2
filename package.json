@@ -6,25 +6,25 @@
   "devDependencies": {
     "@swc/cli": "^0.1.27",
     "@swc/core": "^1.2.38",
+    "@types/chai": "^4.2.14",
     "@types/concurrently": "^5.2.1",
+    "@types/mocha": "^8.2.0",
     "@types/msgpack-lite": "^0.1.7",
     "@types/node": "^14.14.9",
     "@types/nodemon": "^1.19.0",
+    "chai": "^4.2.0",
     "chokidar": "^3.4.3",
     "concurrently": "^5.3.0",
+    "mocha": "^8.2.1",
     "nodemon": "^2.0.6",
+    "ts-node": "^9.1.1",
     "typescript": "^4.1.2"
   },
   "scripts": {
-    "compile-fw": "swc --watch ./src --out-dir ./lib",
     "compile-f": "swc ./src --out-dir ./lib",
     "compile": "tsc ./src/index.ts --outDir ./lib --declaration true",
-    "execute-w": "nodemon ./lib",
-    "execute": "node ./lib",
     "check": "tsc ./src/index.ts --noEmit",
-    "run-fw": "concurrently npm:compile-fw npm:execute-w",
-    "run-f": "concurrently npm:compile-f npm:execute",
-    "run": "concurrently npm:compile npm:execute"
+    "test": "mocha -r ts-node/register ./test/**/*.test.ts"
   },
   "dependencies": {
     "futoin-hkdf": "^1.3.2",
