@@ -132,6 +132,13 @@ export default class Server {
     }
   }
 
+  GetSharedKey (key: Buffer = constants.BUFFER0): Buffer {
+    let unmixedSharedKey = crypto.keyed(key, Buffer.concat([this.clientChallenge, this.serverChallenge]));
+    let mixedSharedKey = crypto.keyed(this.decryptedStoredToken, unmixedSharedKey);
+
+    return mixedSharedKey;
+  }
+
   ServerLast (): Buffer {
     try {
       if (!this.isValid) return encoding.encode({ [names.status]: 1 });

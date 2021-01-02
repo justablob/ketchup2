@@ -112,6 +112,13 @@ export default class Client {
     });
   }
 
+  GetSharedKey (key: Buffer = constants.BUFFER0): Buffer {
+    let premixedSharedKey = crypto.keyed(key, Buffer.concat([this.clientChallenge, this.serverChallenge]));
+    let mixedSharedKey = crypto.keyed(this.serverKey, premixedSharedKey);
+
+    return mixedSharedKey;
+  }
+
   ServerLast(_data: Buffer): boolean {
     try {
       let data = encoding.decode(_data);
