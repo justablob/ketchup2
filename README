@@ -78,6 +78,9 @@ Data is encoded in the MessagePack format.
     ServerKey :: HMAC(ServerFirst.ServerInternalSeed, Client.ClientKey)
         Used internally to sign challenges. The server stores this in an encrypted form.
 
+    SharedKey? :: HMAC(Client.ServerKey, HMAC($UnmixedSharedKey, ClientFirst.ClientRandomness | ServerFirst.ServerRandomness))
+        Shared key, can be optionally used to secure further communication.
+
 <- ClientLast
     PartialKey :: HKDF(ServerFirst.UserSeed, Client.StoredPassword, 64, "PartialKeyClient")
         Key used to decrypt the password hash on the server.
@@ -98,13 +101,17 @@ Data is encoded in the MessagePack format.
     ServerKey :: Decrypt(Server.ServerPartialKey, Server.StoredToken)
         Equal to Client.ServerKey.
 
+    SharedKey? :: HMAC(Server.ServerKey, HMAC($UnmixedSharedKey, ClientFirst.ClientRandomness | ServerFirst.ServerRandomness))
+        Shared key, can be optionally used to secure further communication.
+
 -> ServerLast
     ServerResponse :: HKDF(Server.ServerKey, ClientFirst.ClientChallenge | ServerFirst.ServerRandomness | ClientFirst.ClientRandomness | Server.ServerAdditionalData, 64, "ServerResponse")
         Server response for clients challenge.
 
 // At this point, both sides have enough information to validate each others responses, without having disclosed enough
    information to allow a possible man in the middle steal any sensitive data or impersonate the user, given the man in
-   the middle does not have access to the server database, or otherwise infiltrated one of the two sides.
+   the middle does not have access to the server database, or otherwise infiltrated one of the two sides. The optionally
+   shared key can be used to secure further communications between the two sides.
 
 ~~~~ Functions ~~~~
 

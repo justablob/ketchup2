@@ -26,16 +26,22 @@ Functions used:
 3.2. Client calculates `ClientKey`: `HKDF(ClientInternalSeed, StoredPassword, 64, "ClientKey")`
 3.3. Client calculates `ServerKey`: `HMAC(ServerInternalSeed, ClientKey)`
 
-3.4. Client calculates `Partialkey`: `HKDF(UserSeed, StoredPassword, 64, "PartialKeyClient")`
-3.5. Client calculates `ClientResponse`: `HKDF(ServerKey, ServerChallenge | ClientRandomness | ServerRandomness | ClientAdditionalData, 64, "ClientResponse")`
-3.6. Client sends `PartialKey` and `ClientResponse` to server
+3.4. Client optionally retrieves `UnmixedSharedKey` from somewhere
+3.5. Client optionally calculates `SharedKey`: `HMAC(ServerKey, HMAC(UnmixedSharedKey, ClientRandomness | ServerRandomness))`
+
+3.6. Client calculates `Partialkey`: `HKDF(UserSeed, StoredPassword, 64, "PartialKeyClient")`
+3.7. Client calculates `ClientResponse`: `HKDF(ServerKey, ServerChallenge | ClientRandomness | ServerRandomness | ClientAdditionalData, 64, "ClientResponse")`
+3.8. Client sends `PartialKey` and `ClientResponse` to server
 
 4.1. Server calculates `ServerPartialKey`: `HKDF(ServerPartialKeySeed, PartialKey, 32, "PartialKey")`
 4.2. Server gets `ServerKey`: `Decrypt(ServerPartialKey, StoredToken)`
 
-4.3. Server calculates `ClientResponse` in the same way as client and compares it to the client's `ClientResponse`, if no match, send error and abort
-4.4. Server calculates `ServerResponse`: `HKDF(ServerKey, ClientChallenge | ServerRandomness | ClientRandomness | ServerAdditionalData, 64, "ServerResponse")`
-4.5. Server sends `ServerResponse` to client
+4.3. Server optionally retrieves `UnmixedSharedKey` from somewhere
+4.4. Server optionally calculates `SharedKey`: `HMAC(ServerKey, HMAC(UnmixedSharedKey, ClientRandomness | ServerRandomness))`
+
+4.5. Server calculates `ClientResponse` in the same way as client and compares it to the client's `ClientResponse`, if no match, send error and abort
+4.6. Server calculates `ServerResponse`: `HKDF(ServerKey, ClientChallenge | ServerRandomness | ClientRandomness | ServerAdditionalData, 64, "ServerResponse")`
+4.7. Server sends `ServerResponse` to client
 
 5.1. Client calculates `ServerResponse` in the same way as server and compares it to the server's `ServerResponse`
 5.2. If match, authentication was successful, otherwise abort
