@@ -1,7 +1,6 @@
-import * as names from "./names";
 import * as crypto from "./crypto";
-import * as encoding from "./encoding";
 import * as constants from "./constants";
+import * as encode2 from "./encode2";
 
 export default class Server {
 
@@ -34,14 +33,15 @@ export default class Server {
   SetStored (_data?: Buffer | false): boolean {
     if (!_data) return this.isValid = false;
     try {
-      let data = encoding.decode(_data);
+      let data = encode2.Stored.read(_data);
+      if (!data) return this.isValid = false;
 
-      this.salt = data[names.salt];
-      this.userSeed = data[names.userSeed];
-      this.storedToken = data[names.storedToken];
-      this.clientInternalSeed = data[names.clientInternalSeed];
-      this.serverInternalSeed = data[names.serverInternalSeed];
-      this.serverPartialKeySeed = data[names.serverPartialKeySeed];
+      this.salt = data.Salt;
+      this.userSeed = data.UserSeed;
+      this.storedToken = data.StoredToken;
+      this.clientInternalSeed = data.ClientInternalSeed;
+      this.serverInternalSeed = data.ServerInternalSeed;
+      this.serverPartialKeySeed = data.ServerPartialKeySeed;
 
       return this.isValid = true;
     } catch (err) {
@@ -51,23 +51,13 @@ export default class Server {
 
   ClientFirst (_data: Buffer, additionalData?: Buffer): boolean {
     try {
-      let data = encoding.decode(_data);
-      if (
-        typeof data[names.username] !== "string" ||
-        (data[names.location] !== undefined && typeof data[names.location] !== "string") ||
-        !Buffer.isBuffer(data[names.clientChallenge]) ||
-        !Buffer.isBuffer(data[names.clientRandomness])
-      ) return this.isValid = false;
+      let data = encode2.ClientFirst.read(_data);
+      if (!data) return this.isValid = false;
 
-      this.username = data[names.username];
-      this.location = data[names.location];
-      let clientChallenge = data[names.clientChallenge];
-      let clientRandomness = data[names.clientRandomness];
-
-      if (
-        clientChallenge.length !== constants.CHALLENGE_LENGTH ||
-        clientRandomness.length !== constants.SEED_LENGTH
-      ) return this.isValid = false;
+      this.username = data.Username;
+      this.location = data.Location;
+      let clientChallenge = data.ClientChallenge;
+      let clientRandomness = data.ClientRandomness;
 
       if (additionalData) this.clientAdditionalData = crypto.hash(additionalData);
       this.clientChallenge = clientChallenge;
@@ -81,7 +71,7 @@ export default class Server {
 
   ServerFirst (additionalData?: Buffer): Buffer {
     try {
-      if (!this.isValid || !this.storedToken) return encoding.encode({ status: 1 });
+      if (!this.isValid || !this.storedToken) return encode2.ServerFirst.write({ Status: 1 });
 
       if (additionalData) this.serverAdditionalData = crypto.hash(additionalData);
       this.serverChallenge = crypto.random(constants.CHALLENGE_LENGTH);
@@ -89,14 +79,14 @@ export default class Server {
 
       while (this.serverChallenge.equals(this.clientChallenge)) this.serverChallenge = crypto.random(constants.SEED_LENGTH);
 
-      return encoding.encode({
-        [names.status]: 0,
-        [names.salt]: this.salt,
-        [names.userSeed]: this.userSeed,
-        [names.serverChallenge]: this.serverChallenge,
-        [names.serverRandomness]: this.serverRandomness,
-        [names.clientInternalSeed]: this.clientInternalSeed,
-        [names.serverInternalSeed]: this.serverInternalSeed,
+      return encode2.ServerFirst.write({
+        Status: 0,
+        Salt: this.salt,
+        UserSeed: this.userSeed,
+        ServerChallenge: this.serverChallenge,
+        ServerRandomness: this.serverRandomness,
+        ClientInternalSeed: this.clientInternalSeed,
+        ServerInternalSeed: this.serverInternalSeed,
       });
     } catch (err) {
       return null;
@@ -105,20 +95,11 @@ export default class Server {
 
   ClientLast (_data: Buffer): boolean {
     try {
-      let data = encoding.decode(_data);
+      let data = encode2.ClientLast.read(_data);
+      if (!data) return this.isValid = false;
 
-      if (
-        !Buffer.isBuffer(data[names.partialKey]) ||
-        !Buffer.isBuffer(data[names.clientResponse])
-      ) return this.isValid = false;
-
-      let partialKey = data[names.partialKey];
-      let clientResponse = data[names.clientResponse];
-
-      if (
-        partialKey.length !== constants.HASH_LENGTH ||
-        clientResponse.length !== constants.HASH_LENGTH
-      ) return this.isValid = false;
+      let partialKey = data.PartialKey;
+      let clientResponse = data.ClientResponse;
 
       let storedTokenKey = crypto.deriveKey(this.serverPartialKeySeed, partialKey, constants.CIPHER_KEY_LENGTH, "PartialKey");
 
@@ -141,13 +122,14 @@ export default class Server {
 
   ServerLast (): Buffer {
     try {
-      if (!this.isValid) return encoding.encode({ [names.status]: 1 });
+      if (!this.isValid) return encode2.ServerLast.write({ Status: 1 });
+
 
       let serverResponse = crypto.deriveKey(this.decryptedStoredToken, Buffer.concat([this.clientChallenge, this.serverRandomness, this.clientRandomness, this.serverAdditionalData]), constants.HASH_LENGTH, "ServerResponse");
 
-      return encoding.encode({
-        [names.status]: 0,
-        [names.serverResponse]: serverResponse,
+      return encode2.ServerLast.write({
+        Status: 0,
+        ServerResponse: serverResponse,
       });
     } catch (err) {
       return null;

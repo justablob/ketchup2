@@ -1,13 +1,3 @@
-import * as msgpack from "msgpack-lite";
-
-export function encode<T extends any = any> (data: T): Buffer {
-  return msgpack.encode(data);
-}
-
-export function decode<T extends any = any> (data: Buffer): T {
-  return msgpack.decode(data);
-}
-
 export function bytesToTransport(buffer: Buffer): string {
   return buffer.toString("base64");
 }

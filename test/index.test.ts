@@ -14,7 +14,9 @@ describe("Ketchup2", () => {
     let location = crypto.random(8).toString("hex");
 
     let clientCredentials = ketchup.Helper.ClientCreatePassword(username, password, location);
+    console.log("PreStored", clientCredentials.length);
     let serverCredentials = ketchup.Helper.ServerCreatePassword(clientCredentials);
+    console.log("Stored", serverCredentials[2].length);
 
     let clientAD = crypto.random(32);
     let serverAD = crypto.random(32);
@@ -22,17 +24,21 @@ describe("Ketchup2", () => {
     client.SetCredentials(username, password, location);
 
     let clientFirst = client.ClientFirst(clientAD);
+    console.log("ClientFirst", clientFirst.length);
     assert(server.ClientFirst(clientFirst, clientAD));
 
     if (server.username === username) server.SetStored(serverCredentials[2]);
 
     let serverFirst = server.ServerFirst(serverAD);
+    console.log("ServerFirst", serverFirst.length);
     assert(client.ServerFirst(serverFirst, serverAD));
 
     let clientLast = client.ClientLast();
+    console.log("ClientLast", clientLast.length);
     assert(server.ClientLast(clientLast));
 
     let serverLast = server.ServerLast();
+    console.log("ServerLast", serverLast.length);
     assert(client.ServerLast(serverLast));
 
     let clientSharedKey = client.GetSharedKey();

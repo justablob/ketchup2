@@ -1,0 +1,53 @@
+HASH_LENGTH: 64
+SEED_LENGTH: 24
+CHALLENGE_LENGTH: 32
+IV_LENGTH: 12
+TAG_LENGTH: 12
+
+~HasStatus (
+  Status: number(0 | 1)
+)
+
+ClientFirst (
+  Username: string[?]
+  Location: string[?] | byte[0]
+  ClientRandomness: byte[SEED_LENGTH]
+  ClientChallenge: byte[CHALLENGE_LENGTH]
+)
+
+ServerFirst ~HasStatus (
+  Salt: byte[SEED_LENGTH]
+  UserSeed: byte[SEED_LENGTH]
+  ServerRandomness: byte[SEED_LENGTH]
+  ServerChallenge: byte[CHALLENGE_LENGTH]
+  ClientInternalSeed: byte[SEED_LENGTH]
+  ServerInternalSeed: byte[SEED_LENGTH]
+)
+
+ClientLast (
+  PartialKey: byte[HASH_LENGTH]
+  ClientResponse: byte[HASH_LENGTH]
+)
+
+ServerLast ~HasStatus (
+  ServerResponse: byte[HASH_LENGTH]
+)
+
+PreStored (
+  Username: string[?]
+  Location: string[?] | byte[0]
+  Salt: byte[SEED_LENGTH]
+  UserSeed: byte[SEED_LENGTH]
+  ClientInternalSeed: byte[SEED_LENGTH]
+  PartialKey: byte[HASH_LENGTH]
+  ClientSeeded: byte[HASH_LENGTH]
+)
+
+Stored (
+  Salt: byte[SEED_LENGTH]
+  UserSeed: byte[SEED_LENGTH]
+  ClientInternalSeed: byte[SEED_LENGTH]
+  ServerInternalSeed: byte[SEED_LENGTH]
+  ServerPartialKeySeed: byte[SEED_LENGTH]
+  StoredToken: byte[IV_LENGTH + HASH_LENGTH + TAG_LENGTH]
+)
