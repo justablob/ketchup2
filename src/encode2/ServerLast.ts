@@ -1,5 +1,5 @@
 import { Identifiers } from "./";
-import Advanceable from "./advanceable";
+import Advanceable from "advanceable";
 
 import * as constants from "../constants";
 
