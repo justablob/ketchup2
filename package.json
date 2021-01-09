@@ -3,6 +3,10 @@
   "version": "0.2.0",
   "main": "./lib/index.js",
   "license": "LGPL-3.0-or-later",
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/justablob/ketchup2"
+  },
   "devDependencies": {
     "@types/chai": "^4.2.14",
     "@types/mocha": "^8.2.0",
@@ -13,6 +17,7 @@
     "typescript": "^4.1.2"
   },
   "scripts": {
+    "prepublishOnly": "tsc",
     "build": "tsc",
     "check": "tsc --noEmit",
     "test": "mocha -r ts-node/register ./test/**/*.test.ts"
