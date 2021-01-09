@@ -45,13 +45,13 @@ export function read (buffer: Buffer): PreStored {
 
   if (usernameLength == null) return null;
 
-  let Username = reader.read(usernameLength)?.toString("utf8");
+  let Username = reader.readString(usernameLength, "utf8");
 
   let locationLength = reader.readByte();
 
   if (locationLength == null) return null;
 
-  let Location = locationLength === 0 ? undefined : reader.read(locationLength).toString("utf8");
+  let Location = locationLength === 0 ? undefined : reader.readString(locationLength, "utf8");
 
   let Salt = reader.read(constants.SEED_LENGTH);
   let UserSeed = reader.read(constants.SEED_LENGTH);
@@ -81,9 +81,9 @@ export function write (obj: PreStored, buffer?: Buffer) {
   let writer = new Advanceable(buffer || length(obj), true);
 
   writer.write([Identifiers.PreStored, usernameLength]);
-  writer.write(obj.Username);
+  writer.writeString(obj.Username);
   writer.write([locationLength]);
-  if (locationLength) writer.write(obj.Location);
+  if (locationLength) writer.writeString(obj.Location);
   writer.write(obj.Salt);
   writer.write(obj.UserSeed);
   writer.write(obj.ClientInternalSeed);

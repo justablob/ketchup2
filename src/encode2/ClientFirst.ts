@@ -39,13 +39,13 @@ export function read (buffer: Buffer): ClientFirst {
 
   if (usernameLength == null) return null;
 
-  let Username = reader.read(usernameLength)?.toString("utf8");
+  let Username = reader.readString(usernameLength, "utf8");
 
   let locationLength = reader.readByte();
 
   if (locationLength == null) return null;
 
-  let Location = locationLength === 0 ? undefined : reader.read(locationLength)?.toString("utf8");
+  let Location = locationLength === 0 ? undefined : reader.readString(locationLength, "utf8");
 
   let ClientRandomness = reader.read(constants.SEED_LENGTH);
   let ClientChallenge = reader.read(constants.CHALLENGE_LENGTH);
@@ -69,9 +69,9 @@ export function write (obj: ClientFirst, buffer?: Buffer) {
   let writer = new Advanceable(buffer || length(obj), true);
 
   writer.write([Identifiers.ClientFirst, usernameLength]);
-  writer.write(obj.Username);
+  writer.writeString(obj.Username);
   writer.write([locationLength]);
-  if (locationLength) writer.write(obj.Location);
+  if (locationLength) writer.writeString(obj.Location);
   writer.write(obj.ClientRandomness);
   writer.write(obj.ClientChallenge);
 
