@@ -47,18 +47,20 @@ export function length (obj: ServerFirst) {
 export function read (buffer: Buffer): ServerFirst {
   let reader = new Advanceable(buffer);
 
-  if (!reader.available(2)) return null;
-  if (reader.read(1)[0] !== Identifiers.ServerFirst) return null;
-  let Status = reader.read(1)[0];
+  if (reader.readByte() !== Identifiers.ServerFirst) return null;
+  let Status = reader.readByte();
+
+  if (Status == null) return null;
 
   if (Status === 0) {
-    if (!reader.available(constants.CHALLENGE_LENGTH + 5 * constants.SEED_LENGTH)) return null;
     let Salt = reader.read(constants.SEED_LENGTH);
     let UserSeed = reader.read(constants.SEED_LENGTH);
     let ServerRandomness = reader.read(constants.SEED_LENGTH);
     let ServerChallenge = reader.read(constants.CHALLENGE_LENGTH);
     let ClientInternalSeed = reader.read(constants.SEED_LENGTH);
     let ServerInternalSeed = reader.read(constants.SEED_LENGTH);
+
+    if (!Salt || !UserSeed || !ServerRandomness || !ServerChallenge || !ClientInternalSeed || !ServerInternalSeed) return null;
 
     return {
       Status,

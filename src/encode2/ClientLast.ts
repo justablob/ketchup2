@@ -26,12 +26,12 @@ export function length (obj: ClientLast) {
 export function read (buffer: Buffer): ClientLast {
   let reader = new Advanceable(buffer);
 
-  if (!reader.available(1)) return null;
-  if (reader.read(1)[0] !== Identifiers.ClientLast) return null;
+  if (reader.readByte() !== Identifiers.ClientLast) return null;
 
-  if (!reader.available(2 * constants.HASH_LENGTH)) return null;
   let PartialKey = reader.read(constants.HASH_LENGTH);
   let ClientResponse = reader.read(constants.HASH_LENGTH);
+
+  if (!PartialKey || !ClientResponse) return null;
 
   return {
     PartialKey,

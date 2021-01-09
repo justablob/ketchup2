@@ -37,13 +37,15 @@ export function length (obj: ServerLast) {
 export function read (buffer: Buffer): ServerLast {
   let reader = new Advanceable(buffer);
 
-  if (!reader.available(2)) return null;
-  if (reader.read(1)[0] !== Identifiers.ServerLast) return null;
-  let Status = reader.read(1)[0];
+  if (reader.readByte() !== Identifiers.ServerLast) return null;
+  let Status = reader.readByte();
+
+  if (Status == null) return null;
 
   if (Status === 0) {
-    if (!reader.available(constants.HASH_LENGTH)) return null;
     let ServerResponse = reader.read(constants.HASH_LENGTH);
+
+    if (!ServerResponse) return null;
 
     return {
       Status,

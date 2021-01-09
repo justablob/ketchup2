@@ -37,16 +37,16 @@ export function length (obj: Stored) {
 export function read (buffer: Buffer): Stored {
   let reader = new Advanceable(buffer);
 
-  if (!reader.available()) return null;
-  if (reader.read(1)[0] !== Identifiers.Stored) return null;
+  if (reader.readByte() !== Identifiers.Stored) return null;
 
-  if (!reader.available(5 * constants.SEED_LENGTH + constants.CIPHER_IV_LENGTH + constants.HASH_LENGTH + constants.CIPHER_TAG_LENGTH)) return null;
   let Salt = reader.read(constants.SEED_LENGTH);
   let UserSeed = reader.read(constants.SEED_LENGTH);
   let ClientInternalSeed = reader.read(constants.SEED_LENGTH);
   let ServerInternalSeed = reader.read(constants.SEED_LENGTH);
   let ServerPartialKeySeed = reader.read(constants.SEED_LENGTH);
   let StoredToken = reader.read(constants.CIPHER_IV_LENGTH + constants.HASH_LENGTH + constants.CIPHER_TAG_LENGTH);
+
+  if (!Salt || !UserSeed || !ClientInternalSeed || !ServerInternalSeed || !ServerPartialKeySeed || !StoredToken) return null;
 
   return {
     Salt,

@@ -39,27 +39,27 @@ export function length (obj: PreStored) {
 export function read (buffer: Buffer): PreStored {
   let reader = new Advanceable(buffer);
 
-  if (!reader.available()) return null;
-  if (reader.read(1)[0] !== Identifiers.PreStored) return null;
+  if (reader.readByte() !== Identifiers.PreStored) return null;
 
-  if (!reader.available()) return null;
-  let usernameLength = reader.read(1)[0];
+  let usernameLength = reader.readByte();
 
-  if (!reader.available(usernameLength)) return null;
-  let Username = reader.read(usernameLength).toString("utf8");
+  if (usernameLength == null) return null;
 
-  if (!reader.available()) return null;
-  let locationLength = reader.read(1)[0];
+  let Username = reader.read(usernameLength)?.toString("utf8");
 
-  if (!reader.available(locationLength)) return null;
+  let locationLength = reader.readByte();
+
+  if (locationLength == null) return null;
+
   let Location = locationLength === 0 ? undefined : reader.read(locationLength).toString("utf8");
 
-  if (!reader.available(3 * constants.SEED_LENGTH + 2 * constants.HASH_LENGTH)) return null;
   let Salt = reader.read(constants.SEED_LENGTH);
   let UserSeed = reader.read(constants.SEED_LENGTH);
   let ClientInternalSeed = reader.read(constants.SEED_LENGTH);
   let PartialKey = reader.read(constants.HASH_LENGTH);
   let ClientSeeded = reader.read(constants.HASH_LENGTH);
+
+  if (!Salt || !UserSeed || !ClientInternalSeed || !PartialKey || !ClientSeeded) return null;
 
   return {
     Username,

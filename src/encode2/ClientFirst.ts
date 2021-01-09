@@ -33,24 +33,24 @@ export function length (obj: ClientFirst) {
 export function read (buffer: Buffer): ClientFirst {
   let reader = new Advanceable(buffer);
 
-  if (!reader.available()) return null;
-  if (reader.read(1)[0] !== Identifiers.ClientFirst) return null;
+  if (reader.readByte() !== Identifiers.ClientFirst) return null;
 
-  if (!reader.available()) return null;
-  let usernameLength = reader.read(1)[0];
+  let usernameLength = reader.readByte();
 
-  if (!reader.available(usernameLength)) return null;
-  let Username = reader.read(usernameLength).toString("utf8");
+  if (usernameLength == null) return null;
 
-  if (!reader.available()) return null;
-  let locationLength = reader.read(1)[0];
+  let Username = reader.read(usernameLength)?.toString("utf8");
 
-  if (!reader.available(locationLength)) return null;
-  let Location = locationLength === 0 ? undefined : reader.read(locationLength).toString("utf8");
+  let locationLength = reader.readByte();
 
-  if (!reader.available(constants.SEED_LENGTH + constants.CHALLENGE_LENGTH)) return null;
+  if (locationLength == null) return null;
+
+  let Location = locationLength === 0 ? undefined : reader.read(locationLength)?.toString("utf8");
+
   let ClientRandomness = reader.read(constants.SEED_LENGTH);
   let ClientChallenge = reader.read(constants.CHALLENGE_LENGTH);
+
+  if (!Username || !ClientChallenge || !ClientRandomness) return null;
 
   return {
     Username,
