@@ -11,6 +11,12 @@ import Server from "./Server";
 
 import * as Helper from "./Helper";
 
+export {
+  Client,
+  Server,
+  Helper,
+}
+
 export default {
   version: constants.VERSION,
   Client,
