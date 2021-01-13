@@ -1,3 +1,7 @@
+## !!! BIGASS DISCLAIMER !!!
+***TLDR; I'm deprecating Ketchup2 before it was even properly released.***
+**There are proofs out there that prove that it is impossible to build a secure password-based key exchange like this one without public-key cryptography. Ketchup2, like many other "aPAKE"s is very vulnerable to offline dictionary attacks. While this wouldn't be an issue if users used strong passwords and changed them for every website, in practice, this isn't done often. A credential stuffing attack can potentially break Ketchup2 in a few hours. PLEASE don't use it for password-based authentication. I'll be working on another mechanism intended for securely generated credentials (like API keys) that will use part of the foundation from Ketchup2. I learned a lot while programming this but I'd rather leave it to real professionals now. Check out OPAQUE, a new aPAKE using OPRFs, basically elliptic curves where the keyholder doesn't see the input or the output. Really interesting new concept, I don't understand it well enough yet to write an implementation.**
+
 ```
 
 DISCLAIMER 1: KETCHUP2 WAS NOT PEER-REVIEWED. DO NOT USE FOR ANY PROJECTS UNDER ANY CIRCUMSTANCES. YOU WILL MOST LIKELY REGRET IT.

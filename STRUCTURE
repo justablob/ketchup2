@@ -16,21 +16,29 @@ ClientFirst (
 )
 
 ServerFirst ~HasStatus (
-  Salt: byte[SEED_LENGTH]
-  UserSeed: byte[SEED_LENGTH]
   ServerRandomness: byte[SEED_LENGTH]
-  ServerChallenge: byte[CHALLENGE_LENGTH]
-  ClientInternalSeed: byte[SEED_LENGTH]
-  ServerInternalSeed: byte[SEED_LENGTH]
+  OuterSeed: byte[SEED_LENGTH]
+  OuterIV: byte[IV_LENGTH]
+  Encrypted(byte[HASH_LENGTH], byte[IV_LENGTH]) (
+    Salt: byte[SEED_LENGTH]
+    UserSeed: byte[SEED_LENGTH]
+    ServerChallenge: byte[CHALLENGE_LENGTH]
+    ClientInternalSeed: byte[SEED_LENGTH]
+    ServerInternalSeed: byte[SEED_LENGTH]
+  )
 )
 
 ClientLast (
-  PartialKey: byte[HASH_LENGTH]
-  ClientResponse: byte[HASH_LENGTH]
+  Encrypted(byte[HASH_LENGTH], byte[IV_LENGTH]) (
+    PartialKey: byte[HASH_LENGTH]
+    ClientResponse: byte[HASH_LENGTH]
+  )
 )
 
 ServerLast ~HasStatus (
-  ServerResponse: byte[HASH_LENGTH]
+  Encrypted(byte[HASH_LENGTH], byte[IV_LENGTH]) (
+    ServerResponse: byte[HASH_LENGTH]
+  )
 )
 
 PreStored (
